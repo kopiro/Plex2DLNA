@@ -2,6 +2,14 @@
 
 Automatically redirects active Plex streams to a LG webOS TV's native media player. Fetches the current stream from Tautulli, terminates the Plex session, and launches direct playback via `luna-send-pub`.
 
+## Why?
+
+It's sad that it has to be this was in 2026...
+
+But the Plex app is great for discovering content, but even on Apple TV it can be buggy and slow to load. By redirecting the stream to the TV's native player, you get faster startup times, better format support, and a more seamless experience.
+
+If you want, you can also use [Magic Mapper](https://github.com/andrewfraley/magic_mapper) to map a key on your remote to trigger the script, so you can start watching with a single button press - alternatively, you can run it via CRON or add a script to Home Assistant.
+
 ## How It Works
 
 1. Queries Tautulli for active Plex sessions
