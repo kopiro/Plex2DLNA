@@ -1,0 +1,6 @@
+{
+  "tautulli_url": "http://192.168.0.241:8181/api/v2",
+  "tautulli_api_key": "-------",
+  "plex_url": "http://192.168.0.201:32400",
+  "allowed_users": []
+}
