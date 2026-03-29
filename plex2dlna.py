@@ -42,7 +42,7 @@ def show_message(message):
 def error_exit(message):
     """Print error, show it on the TV, and exit."""
     print("ERROR: %s" % message)
-    show_message("Plex Play: %s" % message)
+    show_message("Plex2DLNA: %s" % message)
     sys.exit(1)
 
 
@@ -53,6 +53,16 @@ def fetch_json(url):
             return json.loads(resp.read())
     except (URLError, OSError):
         error_exit("Failed to reach Tautulli")
+
+
+def fetch_json_or_none(url, warning):
+    """Fetch URL and return parsed JSON, or None on failure."""
+    try:
+        with urlopen(url) as resp:
+            return json.loads(resp.read())
+    except (URLError, OSError):
+        print("WARNING: %s" % warning)
+        return None
 
 
 def resolve_to_ip(url):
@@ -113,16 +123,39 @@ def get_user_token(session):
         print("WARNING: no user_id in session")
         return None
     url = "%s?apikey=%s&cmd=get_user&user_id=%s" % (TAUTULLI_URL, TAUTULLI_API_KEY, user_id)
-    data = fetch_json(url)
+    data = fetch_json_or_none(url, "failed to fetch user details from Tautulli")
+    if not data:
+        return None
     token = data.get("response", {}).get("data", {}).get("user_token")
     if not token:
         print("WARNING: no user_token returned for user_id %s" % user_id)
     return token
 
 
+def get_admin_user_ids():
+    """Return the set of Plex user IDs that Tautulli reports as admins."""
+    url = "%s?apikey=%s&cmd=get_users" % (TAUTULLI_URL, TAUTULLI_API_KEY)
+    data = fetch_json_or_none(url, "failed to fetch admin users from Tautulli")
+    if not data:
+        return None
+    users = data.get("response", {}).get("data", [])
+    return {
+        str(user.get("user_id"))
+        for user in users
+        if str(user.get("is_admin", 0)).lower() in ("1", "true", "yes")
+    }
+
+
 def is_admin_session(session):
-    """Return True when the active session belongs to the Plex admin account."""
-    return str(session.get("is_admin", 0)).lower() in ("1", "true", "yes")
+    """Return True when the active session is verified as the Plex admin account."""
+    session_is_admin = str(session.get("is_admin", 0)).lower() in ("1", "true", "yes")
+    user_id = session.get("user_id")
+    if not session_is_admin or not user_id:
+        return False
+    admin_user_ids = get_admin_user_ids()
+    if admin_user_ids is None:
+        return False
+    return str(user_id) in admin_user_ids
 
 
 def mark_watched(session):
@@ -146,7 +179,7 @@ def mark_watched(session):
     print("Marking rating_key %s as watched" % rating_key)
     try:
         urlopen(url)
-        show_message("Marked %s as watched." % title)
+        show_message("Marked %s as watched for user %s." % (title, username))
     except (URLError, OSError):
         print("WARNING: failed to mark as watched")
 
