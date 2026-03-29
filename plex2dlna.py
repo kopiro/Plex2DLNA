@@ -120,11 +120,22 @@ def get_user_token(session):
     return token
 
 
+def is_admin_session(session):
+    """Return True when the active session belongs to the Plex admin account."""
+    return str(session.get("is_admin", 0)).lower() in ("1", "true", "yes")
+
+
 def mark_watched(session):
-    """Mark the item as watched on Plex on behalf of the streaming user."""
+    """Mark the item as watched on Plex only for admin-owned sessions."""
     rating_key = session.get("rating_key")
     if not rating_key:
         print("WARNING: no rating_key, cannot scrobble")
+        return
+    username = session.get("username", "unknown")
+    title = session.get("full_title", session.get("title", "Unknown"))
+    if not is_admin_session(session):
+        print("Skipping watched mark for non-admin user %s" % username)
+        show_message("Skipped watched mark for %s." % username)
         return
     token = get_user_token(session)
     url = "%s/:/scrobble?key=%s&identifier=com.plexapp.plugins.library" % (PLEX_URL, rating_key)
@@ -133,11 +144,9 @@ def mark_watched(session):
     else:
         print("WARNING: scrobbling without user token (will mark on server owner's account)")
     print("Marking rating_key %s as watched" % rating_key)
-    title = session.get("full_title", session.get("title", "Unknown"))
-    username = session.get("username", "unknown")
     try:
         urlopen(url)
-        show_message("Marked %s as watched on behalf of %s." % (title, username))
+        show_message("Marked %s as watched." % title)
     except (URLError, OSError):
         print("WARNING: failed to mark as watched")
 

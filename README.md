@@ -15,7 +15,7 @@ If you want, you can also use [Magic Mapper](https://github.com/andrewfraley/mag
 1. Queries Tautulli for active Plex sessions
 2. Filters by allowed users
 3. Extracts the direct file stream URL from Plex
-4. Terminates the original Plex session and marks it as watched
+4. Terminates the original Plex session and marks it as watched for admin-owned sessions
 5. Launches the media on the TV via webOS `mediadiscovery` app
 
 ## Requirements
