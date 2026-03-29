@@ -116,22 +116,6 @@ def terminate_session(session):
         print("WARNING: failed to terminate session")
 
 
-def get_user_token(session):
-    """Fetch the user's Plex token from Tautulli."""
-    user_id = session.get("user_id")
-    if not user_id:
-        print("WARNING: no user_id in session")
-        return None
-    url = "%s?apikey=%s&cmd=get_user&user_id=%s" % (TAUTULLI_URL, TAUTULLI_API_KEY, user_id)
-    data = fetch_json_or_none(url, "failed to fetch user details from Tautulli")
-    if not data:
-        return None
-    token = data.get("response", {}).get("data", {}).get("user_token")
-    if not token:
-        print("WARNING: no user_token returned for user_id %s" % user_id)
-    return token
-
-
 def get_admin_user_ids():
     """Return the set of Plex user IDs that Tautulli reports as admins."""
     url = "%s?apikey=%s&cmd=get_users" % (TAUTULLI_URL, TAUTULLI_API_KEY)
@@ -170,12 +154,7 @@ def mark_watched(session):
         print("Skipping watched mark for non-admin user %s" % username)
         show_message("Skipped watched mark for %s." % username)
         return
-    token = get_user_token(session)
     url = "%s/:/scrobble?key=%s&identifier=com.plexapp.plugins.library" % (PLEX_URL, rating_key)
-    if token:
-        url += "&X-Plex-Token=%s" % token
-    else:
-        print("WARNING: scrobbling without user token (will mark on server owner's account)")
     print("Marking rating_key %s as watched" % rating_key)
     try:
         urlopen(url)
