@@ -1,6 +1,6 @@
 # Plex2DLNA
 
-Automatically redirects active Plex streams to a rooted LG webOS TV's native media player. Fetches the current stream from Tautulli, terminates the Plex session, and launches direct playback via `luna-send-pub`.
+Automatically redirects active Plex streams to a LG webOS TV's native media player. Fetches the current stream from Tautulli, terminates the Plex session, and launches direct playback via `luna-send-pub`.
 
 ## How It Works
 
@@ -13,7 +13,7 @@ Automatically redirects active Plex streams to a rooted LG webOS TV's native med
 ## Requirements
 
 - Python 3
-- Rooted LG webOS TV (with `luna-send-pub` available)
+- LG webOS TV (with `luna-send-pub` available)
 - [Tautulli](https://tautulli.com/) monitoring your Plex server
 - `curl` on the TV
 

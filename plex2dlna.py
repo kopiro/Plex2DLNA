@@ -1,11 +1,6 @@
 #!/usr/bin/python3
 """
-Fetch the currently active Plex stream from Tautulli and play it on this LG TV
-via luna-send. Designed to run on a rooted webOS TV.
-
-Usage:
-    python plex_play.py          # play first active stream
-    python plex_play.py --debug  # dump full session JSON for troubleshooting
+Fetch the currently active Plex stream from Tautulli and play it on this LG TV via luna-send. Designed to run on a webOS TV.
 """
 import json
 import os
