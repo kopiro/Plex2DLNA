@@ -7,6 +7,8 @@ import os
 import re
 import subprocess
 import sys
+from urllib.request import urlopen
+from urllib.error import URLError
 
 # --- Configuration ---
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "plex2dlna.json")
@@ -44,13 +46,13 @@ def error_exit(message):
     sys.exit(1)
 
 
-def curl_json(url):
-    """Fetch URL with system curl, return parsed JSON."""
+def fetch_json(url):
+    """Fetch URL and return parsed JSON."""
     try:
-        output = subprocess.check_output(["curl", "-sf", url])
-    except subprocess.CalledProcessError:
+        with urlopen(url) as resp:
+            return json.loads(resp.read())
+    except (URLError, OSError):
         error_exit("Failed to reach Tautulli")
-    return json.loads(output)
 
 
 def resolve_to_ip(url):
@@ -85,7 +87,7 @@ def luna_send(endpoint, payload):
 def get_activity():
     """Get current streaming activity from Tautulli."""
     url = "%s?apikey=%s&cmd=get_activity" % (TAUTULLI_URL, TAUTULLI_API_KEY)
-    data = curl_json(url)
+    data = fetch_json(url)
     return data.get("response", {}).get("data", {})
 
 
@@ -99,8 +101,8 @@ def terminate_session(session):
         TAUTULLI_URL, TAUTULLI_API_KEY, session_key)
     print("Terminating session %s" % session_key)
     try:
-        subprocess.check_output(["curl", "-sf", url])
-    except subprocess.CalledProcessError:
+        urlopen(url)
+    except (URLError, OSError):
         print("WARNING: failed to terminate session")
 
 
@@ -111,7 +113,7 @@ def get_user_token(session):
         print("WARNING: no user_id in session")
         return None
     url = "%s?apikey=%s&cmd=get_user&user_id=%s" % (TAUTULLI_URL, TAUTULLI_API_KEY, user_id)
-    data = curl_json(url)
+    data = fetch_json(url)
     token = data.get("response", {}).get("data", {}).get("user_token")
     if not token:
         print("WARNING: no user_token returned for user_id %s" % user_id)
@@ -131,9 +133,12 @@ def mark_watched(session):
     else:
         print("WARNING: scrobbling without user token (will mark on server owner's account)")
     print("Marking rating_key %s as watched" % rating_key)
+    title = session.get("full_title", session.get("title", "Unknown"))
+    username = session.get("username", "unknown")
     try:
-        subprocess.check_output(["curl", "-sf", url])
-    except subprocess.CalledProcessError:
+        urlopen(url)
+        show_message("Marked %s as watched on behalf of %s." % (title, username))
+    except (URLError, OSError):
         print("WARNING: failed to mark as watched")
 
 

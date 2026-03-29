@@ -15,7 +15,6 @@ Automatically redirects active Plex streams to a LG webOS TV's native media play
 - Python 3
 - LG webOS TV (with `luna-send-pub` available)
 - [Tautulli](https://tautulli.com/) monitoring your Plex server
-- `curl` on the TV
 
 ## Setup
 
